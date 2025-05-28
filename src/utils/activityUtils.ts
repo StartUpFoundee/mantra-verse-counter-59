@@ -1,4 +1,3 @@
-
 import { getData, storeData, getAllData } from './indexedDBUtils';
 
 const STORES = {
@@ -35,7 +34,9 @@ export const recordDailyActivity = async (count: number = 1): Promise<void> => {
       timestamp: Date.now()
     };
     
-    await storeData(STORES.activity, activityData, today);
+    // Store using date as key, not passing separate key parameter
+    await storeData(STORES.activity, activityData);
+    console.log(`Recorded daily activity: ${activityData.count} mantras for ${today}`);
   } catch (error) {
     console.error("Failed to record daily activity:", error);
   }

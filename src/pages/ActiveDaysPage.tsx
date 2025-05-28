@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Flame, Target, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getActivityData, getStreakData } from "@/utils/activityUtils";
-import { mantraCategories, getCategoryColor } from "@/utils/categoryUtils";
+import { mantraCategories, getCategoryColor, getCategorySymbol } from "@/utils/categoryUtils";
 import ModernCard from "@/components/ModernCard";
 
 interface ActivityData {
@@ -34,6 +33,8 @@ const ActiveDaysPage: React.FC = () => {
       const streaks = await getStreakData();
       setActivityData(activity);
       setStreakData(streaks);
+      console.log("Loaded activity data:", activity);
+      console.log("Loaded streak data:", streaks);
     };
     loadData();
   }, []);
@@ -135,27 +136,21 @@ const ActiveDaysPage: React.FC = () => {
         </ModernCard>
       </div>
 
-      {/* Category Legend */}
+      {/* Achievement Categories Legend */}
       <div className="max-w-6xl mx-auto mb-6">
         <ModernCard className="p-4 lg:p-6 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-xl border-amber-200/50 dark:border-amber-700/50" gradient>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Mantra Categories</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Achievement Categories</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {mantraCategories.map((category) => (
-              <div key={category.id} className="flex items-center gap-2">
-                <div className={`w-4 h-4 rounded-sm ${category.bgColor}`}></div>
+              <div key={category.id} className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-white/50 to-gray-50/50 dark:from-zinc-700/50 dark:to-zinc-600/50">
+                <div className="text-2xl">{category.symbol}</div>
                 <div>
-                  <div className={`text-sm font-medium ${category.color} dark:text-white`}>{category.name}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">{category.description}</div>
+                  <div className={`text-sm font-bold ${category.color} dark:text-white`}>{category.name}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">{category.description}</div>
+                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{category.achievement}</div>
                 </div>
               </div>
             ))}
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-200/50 dark:bg-gray-700/50 rounded-sm"></div>
-              <div>
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">No Practice</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">0 mantras</div>
-              </div>
-            </div>
           </div>
         </ModernCard>
       </div>
@@ -174,47 +169,54 @@ const ActiveDaysPage: React.FC = () => {
           <div className="space-y-4">
             {/* Weekday Labels */}
             <div className="flex gap-1 lg:gap-2 ml-12 lg:ml-16">
-              {weekdays.map((day) => (
-                <div key={day} className="w-3 h-3 lg:w-4 lg:h-4 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center">
-                  {day[0]}
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                <div key={index} className="w-6 h-6 lg:w-8 lg:h-8 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                  {day}
                 </div>
               ))}
             </div>
 
             {/* Calendar Grid */}
             <div className="flex gap-1 lg:gap-2 overflow-x-auto pb-4">
-              {Array.from({ length: 53 }, (_, weekIndex) => (
-                <div key={weekIndex} className="flex flex-col gap-1 lg:gap-2">
-                  {/* Month label */}
-                  {weekIndex === 0 || (calendarDays[weekIndex * 7] && calendarDays[weekIndex * 7].displayDate.getDate() <= 7) ? (
-                    <div className="h-4 lg:h-6 text-xs text-gray-500 dark:text-gray-400 mb-1 lg:mb-2 min-w-[40px] lg:min-w-[60px]">
-                      {calendarDays[weekIndex * 7] && months[calendarDays[weekIndex * 7].month]}
-                    </div>
-                  ) : (
-                    <div className="h-4 lg:h-6 mb-1 lg:mb-2"></div>
-                  )}
-                  
-                  {Array.from({ length: 7 }, (_, dayIndex) => {
-                    const dayData = calendarDays[weekIndex * 7 + dayIndex];
-                    if (!dayData) return <div key={dayIndex} className="w-3 h-3 lg:w-4 lg:h-4"></div>;
+              {Array.from({ length: 53 }, (_, weekIndex) => {
+                const calendarDays = generateCalendarData();
+                return (
+                  <div key={weekIndex} className="flex flex-col gap-1 lg:gap-2">
+                    {/* Month label */}
+                    {weekIndex === 0 || (calendarDays[weekIndex * 7] && calendarDays[weekIndex * 7].displayDate.getDate() <= 7) ? (
+                      <div className="h-4 lg:h-6 text-xs text-gray-500 dark:text-gray-400 mb-1 lg:mb-2 min-w-[48px] lg:min-w-[64px]">
+                        {calendarDays[weekIndex * 7] && ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarDays[weekIndex * 7].month]}
+                      </div>
+                    ) : (
+                      <div className="h-4 lg:h-6 mb-1 lg:mb-2"></div>
+                    )}
                     
-                    return (
-                      <div
-                        key={dayIndex}
-                        className={`w-3 h-3 lg:w-4 lg:h-4 rounded-sm cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-amber-400 relative ${
-                          getCategoryColor(dayData.count)
-                        } ${dayData.isToday ? 'ring-2 ring-amber-500' : ''}`}
-                        onMouseEnter={(e) => {
-                          setHoveredDay({ date: dayData.date, count: dayData.count });
-                          handleMouseMove(e);
-                        }}
-                        onMouseMove={handleMouseMove}
-                        onMouseLeave={() => setHoveredDay(null)}
-                      />
-                    );
-                  })}
-                </div>
-              ))}
+                    {Array.from({ length: 7 }, (_, dayIndex) => {
+                      const dayData = calendarDays[weekIndex * 7 + dayIndex];
+                      if (!dayData) return <div key={dayIndex} className="w-6 h-6 lg:w-8 lg:h-8"></div>;
+                      
+                      const symbol = getCategorySymbol(dayData.count);
+                      
+                      return (
+                        <div
+                          key={dayIndex}
+                          className={`w-6 h-6 lg:w-8 lg:h-8 rounded-sm cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-amber-400 relative flex items-center justify-center text-xs lg:text-sm ${
+                            getCategoryColor(dayData.count)
+                          } ${dayData.isToday ? 'ring-2 ring-amber-500' : ''}`}
+                          onMouseEnter={(e) => {
+                            setHoveredDay({ date: dayData.date, count: dayData.count });
+                            handleMouseMove(e);
+                          }}
+                          onMouseMove={handleMouseMove}
+                          onMouseLeave={() => setHoveredDay(null)}
+                        >
+                          {symbol && <span className="opacity-90">{symbol}</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </ModernCard>
@@ -240,6 +242,11 @@ const ActiveDaysPage: React.FC = () => {
           <div className="text-amber-600 dark:text-amber-400">
             {hoveredDay.count} mantras completed
           </div>
+          {getCategorySymbol(hoveredDay.count) && (
+            <div className="text-gray-700 dark:text-gray-300 text-xs mt-1">
+              Achievement: {getCategorySymbol(hoveredDay.count)}
+            </div>
+          )}
         </div>
       )}
     </div>
