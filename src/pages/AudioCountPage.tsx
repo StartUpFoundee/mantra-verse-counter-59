@@ -22,11 +22,14 @@ const AudioCountPage: React.FC = () => {
           
           <div className="flex items-center gap-2 lg:gap-3">
             <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center shadow-lg">
-              <Sparkles className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+              <span className="text-white text-lg lg:text-xl">🎙️</span>
             </div>
-            <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Audio Counter
-            </h1>
+            <div className="text-center">
+              <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Voice Jaap Counter
+              </h1>
+              <p className="text-xs lg:text-sm text-blue-700 dark:text-blue-300">आवाज़ से गिनती</p>
+            </div>
           </div>
           
           <ModernCard 
