@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Flame, Target, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getActivityData, getStreakData } from "@/utils/activityUtils";
+import { mantraCategories, getCategoryColor } from "@/utils/categoryUtils";
 import ModernCard from "@/components/ModernCard";
 
 interface ActivityData {
@@ -36,14 +37,6 @@ const ActiveDaysPage: React.FC = () => {
     };
     loadData();
   }, []);
-
-  const getActivityLevel = (count: number): string => {
-    if (count === 0) return "bg-gray-200/50 dark:bg-gray-700/50";
-    if (count <= 20) return "bg-emerald-200/70 dark:bg-emerald-800/50";
-    if (count <= 50) return "bg-emerald-300/80 dark:bg-emerald-700/60";
-    if (count <= 100) return "bg-emerald-400/90 dark:bg-emerald-600/70";
-    return "bg-emerald-500 dark:bg-emerald-500";
-  };
 
   const generateCalendarData = () => {
     const today = new Date();
@@ -142,6 +135,31 @@ const ActiveDaysPage: React.FC = () => {
         </ModernCard>
       </div>
 
+      {/* Category Legend */}
+      <div className="max-w-6xl mx-auto mb-6">
+        <ModernCard className="p-4 lg:p-6 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-xl border-amber-200/50 dark:border-amber-700/50" gradient>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Mantra Categories</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {mantraCategories.map((category) => (
+              <div key={category.id} className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded-sm ${category.bgColor}`}></div>
+                <div>
+                  <div className={`text-sm font-medium ${category.color} dark:text-white`}>{category.name}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{category.description}</div>
+                </div>
+              </div>
+            ))}
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-200/50 dark:bg-gray-700/50 rounded-sm"></div>
+              <div>
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">No Practice</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">0 mantras</div>
+              </div>
+            </div>
+          </div>
+        </ModernCard>
+      </div>
+
       {/* Calendar Grid */}
       <div className="max-w-6xl mx-auto">
         <ModernCard className="p-6 lg:p-8 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-xl border-amber-200/50 dark:border-amber-700/50" gradient>
@@ -184,7 +202,7 @@ const ActiveDaysPage: React.FC = () => {
                       <div
                         key={dayIndex}
                         className={`w-3 h-3 lg:w-4 lg:h-4 rounded-sm cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-amber-400 relative ${
-                          getActivityLevel(dayData.count)
+                          getCategoryColor(dayData.count)
                         } ${dayData.isToday ? 'ring-2 ring-amber-500' : ''}`}
                         onMouseEnter={(e) => {
                           setHoveredDay({ date: dayData.date, count: dayData.count });
@@ -197,17 +215,6 @@ const ActiveDaysPage: React.FC = () => {
                   })}
                 </div>
               ))}
-            </div>
-
-            {/* Legend */}
-            <div className="flex items-center gap-2 lg:gap-3 text-xs lg:text-sm text-gray-500 dark:text-gray-400 justify-center">
-              <span>Less</span>
-              <div className="w-3 h-3 lg:w-4 lg:h-4 bg-gray-200/50 dark:bg-gray-700/50 rounded-sm"></div>
-              <div className="w-3 h-3 lg:w-4 lg:h-4 bg-emerald-200/70 dark:bg-emerald-800/50 rounded-sm"></div>
-              <div className="w-3 h-3 lg:w-4 lg:h-4 bg-emerald-300/80 dark:bg-emerald-700/60 rounded-sm"></div>
-              <div className="w-3 h-3 lg:w-4 lg:h-4 bg-emerald-400/90 dark:bg-emerald-600/70 rounded-sm"></div>
-              <div className="w-3 h-3 lg:w-4 lg:h-4 bg-emerald-500 dark:bg-emerald-500 rounded-sm"></div>
-              <span>More</span>
             </div>
           </div>
         </ModernCard>
@@ -231,7 +238,7 @@ const ActiveDaysPage: React.FC = () => {
             })}
           </div>
           <div className="text-amber-600 dark:text-amber-400">
-            {hoveredDay.count} jaaps completed
+            {hoveredDay.count} mantras completed
           </div>
         </div>
       )}

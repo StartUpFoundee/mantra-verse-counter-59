@@ -36,6 +36,28 @@ const ManualCounter: React.FC = () => {
     loadCounts();
   }, []);
 
+  // Add volume button and headphone button support
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Volume up/down buttons and media keys
+      if (event.code === 'AudioVolumeUp' || 
+          event.code === 'AudioVolumeDown' || 
+          event.code === 'MediaPlayPause' ||
+          event.code === 'MediaNextTrack' ||
+          event.code === 'MediaPreviousTrack') {
+        event.preventDefault();
+        handleIncrement();
+      }
+    };
+
+    // Listen for hardware button presses
+    document.addEventListener('keydown', handleKeyPress);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [currentCount, targetCount]);
+
   useEffect(() => {
     // Check if target is reached
     if (targetCount !== null && currentCount >= targetCount && targetCount > 0) {
@@ -53,9 +75,19 @@ const ManualCounter: React.FC = () => {
     setShowCompletionAlert(false);
   };
 
+  const triggerVibration = () => {
+    // Trigger mobile vibration if supported
+    if ('vibrate' in navigator) {
+      navigator.vibrate([100, 50, 100]); // Short-pause-short vibration pattern
+    }
+  };
+
   const handleIncrement = async () => {
     const newCount = currentCount + 1;
     setCurrentCount(newCount);
+    
+    // Trigger vibration
+    triggerVibration();
     
     // Update counts in IndexedDB and record daily activity
     try {
@@ -173,10 +205,13 @@ const ManualCounter: React.FC = () => {
       
       <div className="text-center mb-6">
         <p className="text-gray-600 dark:text-gray-300 text-base lg:text-lg">
-          🙏 Tap the + button for each mantra chanted
+          🙏 Tap + button or use volume/headphone buttons
         </p>
         <p className="text-amber-600 dark:text-amber-400 text-sm lg:text-base mt-1">
-          प्रत्येक जाप के लिए + बटन दबाएं
+          + बटन दबाएं या वॉल्यूम/हेडफोन बटन का उपयोग करें
+        </p>
+        <p className="text-gray-500 dark:text-gray-400 text-xs mt-2">
+          📳 Phone will vibrate on each count
         </p>
       </div>
       

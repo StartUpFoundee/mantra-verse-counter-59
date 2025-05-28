@@ -71,6 +71,10 @@ const MantraCounter: React.FC = () => {
     if (audioFeedback.current) {
       audioFeedback.current.playSuccessSound();
     }
+    // Trigger celebration vibration
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200, 100, 200]);
+    }
     setShowCompletionAlert(true);
   };
 
@@ -121,6 +125,11 @@ const MantraCounter: React.FC = () => {
           if (now - lastCountTime.current > 500) {
             setCurrentCount(count => {
               const newCount = count + 1;
+              
+              // Trigger vibration on mantra completion
+              if ('vibrate' in navigator) {
+                navigator.vibrate([100, 50, 100]);
+              }
               
               // Play audio feedback
               if (audioFeedbackEnabled && audioFeedback.current) {
