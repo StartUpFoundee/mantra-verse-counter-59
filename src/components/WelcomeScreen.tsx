@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -18,6 +17,7 @@ import { toast } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { initializeDatabase, migrateFromLocalStorage } from "@/utils/indexedDBUtils";
 import ModernCard from "./ModernCard";
+import EmailAuthTabs from "./EmailAuthTabs";
 
 const WelcomeScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ const WelcomeScreen: React.FC = () => {
   const [name, setName] = useState("");
   const [dob, setDob] = useState("");
   const [selectedIcon, setSelectedIcon] = useState("om");
-  const [activeTab, setActiveTab] = useState<"create" | "login" | "recover">("create");
+  const [activeTab, setActiveTab] = useState<"email" | "create" | "login" | "recover">("email");
   const [existingId, setExistingId] = useState("");
   const [recoveryDob, setRecoveryDob] = useState("");
   const [recoveredIds, setRecoveredIds] = useState<string[]>([]);
@@ -64,6 +64,12 @@ const WelcomeScreen: React.FC = () => {
     );
   }
 
+  const handleAuthSuccess = () => {
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 1000);
+  };
+
   const handleCreateIdentity = async () => {
     if (!name || !dob || !selectedIcon) {
       toast("Missing information", {
@@ -92,7 +98,6 @@ const WelcomeScreen: React.FC = () => {
       description: `Your spiritual ID is ${userID}. Welcome!`,
     });
 
-    // Force navigation to home page
     setTimeout(() => {
       window.location.href = "/";
     }, 1000);
@@ -181,14 +186,30 @@ const WelcomeScreen: React.FC = () => {
         
         <Tabs 
           value={activeTab} 
-          onValueChange={(value) => setActiveTab(value as "create" | "login" | "recover")}
+          onValueChange={(value) => setActiveTab(value as "email" | "create" | "login" | "recover")}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-3 bg-white/60 dark:bg-zinc-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-zinc-700/50">
+          <TabsList className="grid w-full grid-cols-4 bg-white/60 dark:bg-zinc-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-zinc-700/50">
+            <TabsTrigger value="email" className="text-xs lg:text-sm data-[state=active]:bg-amber-500 data-[state=active]:text-white">Email</TabsTrigger>
             <TabsTrigger value="create" className="text-xs lg:text-sm data-[state=active]:bg-amber-500 data-[state=active]:text-white">Create</TabsTrigger>
             <TabsTrigger value="login" className="text-xs lg:text-sm data-[state=active]:bg-amber-500 data-[state=active]:text-white">Login</TabsTrigger>
             <TabsTrigger value="recover" className="text-xs lg:text-sm data-[state=active]:bg-amber-500 data-[state=active]:text-white">Recover</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="email" className="mt-6">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-amber-600 dark:text-amber-400 mb-2">
+                🔐 Secure Email + PIN Authentication
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                One email, one account. Your data stays secure and private.
+              </p>
+            </div>
+            <EmailAuthTabs 
+              onAuthSuccess={handleAuthSuccess}
+              onContinueAsGuest={handleContinueAsGuest}
+            />
+          </TabsContent>
           
           <TabsContent value="create" className="mt-6 space-y-4 lg:space-y-6">
             <div className="space-y-4 lg:space-y-5">

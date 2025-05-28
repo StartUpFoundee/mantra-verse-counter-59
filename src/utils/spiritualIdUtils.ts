@@ -15,6 +15,9 @@ import {
   STORES
 } from './indexedDBUtils';
 
+// Import email identity utilities
+import { isEmailBasedID } from './emailIdentityUtils';
+
 /**
  * Generate a data-embedded spiritual ID that contains all user information
  */
@@ -36,6 +39,7 @@ export const generateDataEmbeddedID = async (userData: any): Promise<string> => 
     const embeddedData = {
       id: userData.id || generateUserID(userData.dob),
       name: userData.name,
+      email: userData.email, // Add email for new system
       dob: userData.dob,
       symbol: userData.symbol,
       symbolImage: userData.symbolImage,
@@ -189,6 +193,11 @@ export const validateUserID = (id: string): boolean => {
     }
   }
   
+  // Validate email-based format
+  if (isEmailBasedID(id)) {
+    return id.length > 3; // Basic validation for EM_ prefix
+  }
+  
   // Validate format: DDMMYYYY_TTTTTT_RRR (enhanced format)
   const enhancedRegex = /^\d{8}_\d{6}_\d{3}$/;
   // Also support old format: DDMMYYYY_XXXX for backward compatibility
@@ -203,8 +212,8 @@ export const correctUserID = (id: string): string => {
   // Remove spaces
   let corrected = id.trim();
   
-  // If it's an embedded ID, return as is
-  if (corrected.startsWith('SE_')) {
+  // If it's an embedded ID or email-based ID, return as is
+  if (corrected.startsWith('SE_') || isEmailBasedID(corrected)) {
     return corrected;
   }
   
@@ -230,6 +239,11 @@ export const extractDOBFromID = (id: string): string | null => {
   if (id.startsWith('SE_')) {
     const decoded = decodeEmbeddedID(id);
     return decoded?.dob || null;
+  }
+  
+  // Email-based IDs don't contain DOB information
+  if (isEmailBasedID(id)) {
+    return null;
   }
   
   if (!id.includes('_')) return null;
@@ -294,13 +308,18 @@ export const getUserData = () => {
  * Save user data to storage and regenerate ID with latest data
  */
 export const saveUserData = async (userData: any) => {
-  // Generate new embedded ID with all current data
-  const embeddedId = await generateDataEmbeddedID(userData);
-  const updatedUserData = { ...userData, id: embeddedId };
+  // For email-based accounts, don't regenerate the ID as it's based on email+PIN hash
+  let finalUserData = userData;
   
-  localStorage.setItem('chantTrackerUserData', JSON.stringify(updatedUserData));
+  if (!isEmailBasedID(userData.id)) {
+    // Generate new embedded ID with all current data for non-email accounts
+    const embeddedId = await generateDataEmbeddedID(userData);
+    finalUserData = { ...userData, id: embeddedId };
+  }
+  
+  localStorage.setItem('chantTrackerUserData', JSON.stringify(finalUserData));
   // Async save to IndexedDB
-  saveDBUserData(updatedUserData).catch(console.error);
+  saveDBUserData(finalUserData).catch(console.error);
 };
 
 /**
