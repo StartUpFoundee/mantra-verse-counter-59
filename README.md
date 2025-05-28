@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**:https://lovable.dev/projects/9dfdd8f4-b2a8-44e4-88e8-494f945a39a5
+**URL**:https://preview--mantra-verse-counter-59.lovable.app/active-days
 
 ## How can I edit this code?
 
