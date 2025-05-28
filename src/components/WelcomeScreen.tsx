@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
-import { initializeDatabase, migrateFromLocalStorage } from "@/utils/indexedDBUtils";
+import { initializeDatabase } from "@/utils/indexedDBUtils";
 import ModernCard from "./ModernCard";
 import EmailAuthTabs from "./EmailAuthTabs";
 
@@ -15,10 +14,7 @@ const WelcomeScreen: React.FC = () => {
     const init = async () => {
       setIsMigrating(true);
       await initializeDatabase();
-      const migrationSuccess = await migrateFromLocalStorage();
-      if (migrationSuccess) {
-        console.log("Data migration successful");
-      }
+      console.log("Database initialization completed");
       setIsMigrating(false);
     };
     init();
