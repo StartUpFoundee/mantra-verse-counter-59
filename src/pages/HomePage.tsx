@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mic, Hand, Infinity, Clock, Sparkles, Calendar, Om } from "lucide-react";
+import { Mic, Hand, Infinity, Clock, Sparkles, Calendar, Circle } from "lucide-react";
 import { isUserLoggedIn, getUserData } from "@/utils/spiritualIdUtils";
 import ThemeToggle from "@/components/ThemeToggle";
 import WelcomeScreen from "@/components/WelcomeScreen";
@@ -145,7 +144,7 @@ const HomePage: React.FC = () => {
             <ModernCard className="p-4 lg:p-6 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 border-orange-200/50 dark:border-orange-700/50">
               <div className="text-center">
                 <p className="text-orange-800 dark:text-orange-200 text-sm lg:text-base italic mb-2">
-                  "हरे कृष्ण हरे कृष्ण कृष्ण कृष्ण हरे हरे, हरे राम हरे राम राम राम हरे हरे"
+                  "हरे कृष्ण हरे कृष्ण कृष्ण हरे हरे, हरे राम हरे राम राम हरे हरे"
                 </p>
                 <p className="text-orange-600 dark:text-orange-400 text-xs lg:text-sm">
                   Chant the holy names and be liberated
@@ -249,7 +248,7 @@ const HomePage: React.FC = () => {
                 <div className="space-y-3">
                   <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                     <p className="font-medium text-orange-800 dark:text-orange-200">Hare Krishna Maha Mantra</p>
-                    <p className="text-sm text-orange-600 dark:text-orange-400">हरे कृष्ण हरे कृष्ण कृष्ण कृष्ण हरे हरे</p>
+                    <p className="text-sm text-orange-600 dark:text-orange-400">हरे कृष्ण हरे कृष्ण कृष्ण हरे हरे</p>
                   </div>
                   <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                     <p className="font-medium text-orange-800 dark:text-orange-200">Om Namah Shivaya</p>
