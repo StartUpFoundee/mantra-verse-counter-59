@@ -1,21 +1,25 @@
 import { openDB } from 'idb';
 
 const DB_NAME = "mantra_db";
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Increment version to trigger upgrade
 
 // Initialize the database
 export const initializeDatabase = async () => {
   try {
     await openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        // Create the activityData store
+      upgrade(db, oldVersion) {
+        console.log(`Upgrading database from version ${oldVersion} to ${DB_VERSION}`);
+        
+        // Create the activityData store with explicit keyPath
         if (!db.objectStoreNames.contains('activityData')) {
-          db.createObjectStore('activityData');
+          const activityStore = db.createObjectStore('activityData', { keyPath: 'date' });
+          console.log('Created activityData store with keyPath: date');
         }
         
         // Create the spiritualId store
         if (!db.objectStoreNames.contains('spiritualId')) {
           db.createObjectStore('spiritualId');
+          console.log('Created spiritualId store');
         }
       }
     });
@@ -37,17 +41,25 @@ export const storeData = async (storeName: string, data: any, key?: string): Pro
       try {
         let putRequest;
         if (storeName === "activityData") {
-          // For activity data, use the date as the key from the data object
-          putRequest = store.put(data, data.date);
+          // For activity data, use put without explicit key since we have keyPath
+          putRequest = store.put(data);
+          console.log('Storing activity data:', data);
         } else if (key) {
           putRequest = store.put(data, key);
         } else {
           putRequest = store.put(data);
         }
         
-        putRequest.onsuccess = () => resolve();
-        putRequest.onerror = () => reject(putRequest.error);
+        putRequest.onsuccess = () => {
+          console.log(`Successfully stored data in ${storeName}:`, data);
+          resolve();
+        };
+        putRequest.onerror = () => {
+          console.error(`Failed to store data in ${storeName}:`, putRequest.error);
+          reject(putRequest.error);
+        };
       } catch (error) {
+        console.error(`Error storing data in ${storeName}:`, error);
         reject(error);
       }
     };
@@ -157,5 +169,36 @@ export const getTodayCount = async (): Promise<number> => {
   } catch (error) {
     console.error("Failed to get today count:", error);
     return 0;
+  }
+};
+
+// Add new function to update mantra counts
+export const updateMantraCounts = async (increment: number): Promise<{lifetimeCount: number, todayCount: number}> => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  try {
+    // Get existing activity for today
+    const existingActivity = await getData('activityData', today);
+    const currentCount = existingActivity ? existingActivity.count : 0;
+    
+    // Update activity count
+    const activityData = {
+      date: today,
+      count: currentCount + increment,
+      timestamp: Date.now()
+    };
+    
+    // Store activity data
+    await storeData('activityData', activityData);
+    console.log(`Updated daily activity: ${activityData.count} mantras for ${today}`);
+    
+    // Get updated counts
+    const lifetimeCount = await getLifetimeCount();
+    const todayCount = await getTodayCount();
+    
+    return { lifetimeCount, todayCount };
+  } catch (error) {
+    console.error("Failed to update mantra counts:", error);
+    throw error;
   }
 };

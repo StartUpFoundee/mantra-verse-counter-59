@@ -72,10 +72,10 @@ export const getCategoryForCount = (count: number): MantraCategory | null => {
 };
 
 export const getCategoryColor = (count: number): string => {
-  if (count === 0) return "bg-gray-200/50 dark:bg-gray-700/50";
+  if (count === 0) return "bg-gray-100/50 dark:bg-gray-800/50";
   
   const category = getCategoryForCount(count);
-  return category ? category.bgColor : "bg-gray-200/50 dark:bg-gray-700/50";
+  return category ? category.bgColor : "bg-gray-100/50 dark:bg-gray-800/50";
 };
 
 export const getCategorySymbol = (count: number): string => {

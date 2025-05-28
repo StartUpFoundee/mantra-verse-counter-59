@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Flame, Target, TrendingUp } from "lucide-react";
@@ -29,6 +30,7 @@ const ActiveDaysPage: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
+      console.log("Loading activity data...");
       const activity = await getActivityData();
       const streaks = await getStreakData();
       setActivityData(activity);
@@ -69,8 +71,6 @@ const ActiveDaysPage: React.FC = () => {
   };
 
   const calendarDays = generateCalendarData();
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePosition({ x: e.clientX, y: e.clientY });
@@ -179,7 +179,6 @@ const ActiveDaysPage: React.FC = () => {
             {/* Calendar Grid */}
             <div className="flex gap-1 lg:gap-2 overflow-x-auto pb-4">
               {Array.from({ length: 53 }, (_, weekIndex) => {
-                const calendarDays = generateCalendarData();
                 return (
                   <div key={weekIndex} className="flex flex-col gap-1 lg:gap-2">
                     {/* Month label */}
@@ -196,13 +195,12 @@ const ActiveDaysPage: React.FC = () => {
                       if (!dayData) return <div key={dayIndex} className="w-6 h-6 lg:w-8 lg:h-8"></div>;
                       
                       const symbol = getCategorySymbol(dayData.count);
+                      const bgColor = dayData.count > 0 ? getCategoryColor(dayData.count) : "bg-gray-100 dark:bg-gray-700";
                       
                       return (
                         <div
                           key={dayIndex}
-                          className={`w-6 h-6 lg:w-8 lg:h-8 rounded-sm cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-amber-400 relative flex items-center justify-center text-xs lg:text-sm ${
-                            getCategoryColor(dayData.count)
-                          } ${dayData.isToday ? 'ring-2 ring-amber-500' : ''}`}
+                          className={`w-6 h-6 lg:w-8 lg:h-8 rounded-sm cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-amber-400 relative flex items-center justify-center text-xs lg:text-sm border border-gray-200 dark:border-gray-600 ${bgColor} ${dayData.isToday ? 'ring-2 ring-amber-500' : ''}`}
                           onMouseEnter={(e) => {
                             setHoveredDay({ date: dayData.date, count: dayData.count });
                             handleMouseMove(e);
@@ -210,7 +208,10 @@ const ActiveDaysPage: React.FC = () => {
                           onMouseMove={handleMouseMove}
                           onMouseLeave={() => setHoveredDay(null)}
                         >
-                          {symbol && <span className="opacity-90">{symbol}</span>}
+                          {symbol && <span className="opacity-90 text-lg">{symbol}</span>}
+                          {!symbol && dayData.count > 0 && (
+                            <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                          )}
                         </div>
                       );
                     })}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, RotateCcw, Target } from "lucide-react";
@@ -26,6 +25,7 @@ const ManualCounter: React.FC = () => {
         
         setLifetimeCount(lifetime);
         setTodayCount(today);
+        console.log("Loaded counts - Lifetime:", lifetime, "Today:", today);
       } catch (error) {
         console.error("Error loading counts:", error);
       } finally {
@@ -91,6 +91,7 @@ const ManualCounter: React.FC = () => {
     
     // Update counts in IndexedDB and record daily activity
     try {
+      console.log("Recording mantra count...");
       const { lifetimeCount: newLifetime, todayCount: newToday } = await updateMantraCounts(1);
       setLifetimeCount(newLifetime);
       setTodayCount(newToday);
@@ -98,11 +99,14 @@ const ManualCounter: React.FC = () => {
       // Record daily activity for the calendar
       await recordDailyActivity(1);
       
+      console.log("Successfully recorded mantra - New counts:", { lifetime: newLifetime, today: newToday });
+      
       toast.success(`Mantra counted: ${newCount} 🕉️`, {
         duration: 1000,
       });
     } catch (error) {
       console.error("Error updating counts:", error);
+      toast.error("Failed to record mantra count");
     }
   };
 
