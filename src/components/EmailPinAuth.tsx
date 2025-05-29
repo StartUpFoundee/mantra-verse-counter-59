@@ -4,11 +4,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
-import { generateEmailBasedID, validateEmail, validatePin } from "@/utils/emailIdentityUtils";
 import { saveUserData } from "@/utils/spiritualIdUtils";
 import { spiritualIcons } from "@/utils/spiritualIdUtils";
 import SpiritualIconSelector from "./SpiritualIconSelector";
 import ModernCard from "./ModernCard";
+
+// Simple email validation
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+// Simple PIN validation (4 digits)
+const validatePin = (pin: string): boolean => {
+  return /^\d{4}$/.test(pin);
+};
+
+// Generate a simple hash-based ID from email and PIN
+const generateEmailBasedID = async (email: string, pin: string): Promise<string> => {
+  const combined = email.toLowerCase() + pin;
+  const encoder = new TextEncoder();
+  const data = encoder.encode(combined);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return `EM_${hashHex.substring(0, 16)}`;
+};
 
 interface EmailPinAuthProps {
   onAuthSuccess: () => void;
@@ -48,11 +69,11 @@ const EmailPinAuth: React.FC<EmailPinAuthProps> = ({ onAuthSuccess, isLogin = fa
         id: userID,
         email: email.toLowerCase(),
         name: name || "Spiritual Seeker",
-        symbol: selectedIcon,
+        picture: undefined,
         symbolImage: iconObj?.symbol || "🕉️",
         createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-        chantingStats: {}
+        lastUpdated: new Date().toISOString(),
+        syncEnabled: false
       };
 
       await saveUserData(userData);
