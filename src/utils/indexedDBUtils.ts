@@ -1,7 +1,8 @@
 import { openDB } from 'idb';
+import { dataFortress } from './dataFortress';
 
 const DB_NAME = "mantra_db";
-const DB_VERSION = 2; // Increment version to trigger upgrade
+const DB_VERSION = 2;
 
 // Initialize the database
 export const initializeDatabase = async () => {
@@ -10,13 +11,11 @@ export const initializeDatabase = async () => {
       upgrade(db, oldVersion) {
         console.log(`Upgrading database from version ${oldVersion} to ${DB_VERSION}`);
         
-        // Create the activityData store with explicit keyPath
         if (!db.objectStoreNames.contains('activityData')) {
           const activityStore = db.createObjectStore('activityData', { keyPath: 'date' });
           console.log('Created activityData store with keyPath: date');
         }
         
-        // Create the spiritualId store
         if (!db.objectStoreNames.contains('spiritualId')) {
           db.createObjectStore('spiritualId');
           console.log('Created spiritualId store');
@@ -41,7 +40,6 @@ export const storeData = async (storeName: string, data: any, key?: string): Pro
       try {
         let putRequest;
         if (storeName === "activityData") {
-          // For activity data, use put without explicit key since we have keyPath
           putRequest = store.put(data);
           console.log('Storing activity data:', data);
         } else if (key) {
@@ -172,16 +170,14 @@ export const getTodayCount = async (): Promise<number> => {
   }
 };
 
-// Add new function to update mantra counts
+// Enhanced update function with data fortress integration
 export const updateMantraCounts = async (increment: number): Promise<{lifetimeCount: number, todayCount: number}> => {
   const today = new Date().toISOString().split('T')[0];
   
   try {
-    // Get existing activity for today
     const existingActivity = await getData('activityData', today);
     const currentCount = existingActivity ? existingActivity.count : 0;
     
-    // Update activity count
     const activityData = {
       date: today,
       count: currentCount + increment,
@@ -196,9 +192,27 @@ export const updateMantraCounts = async (increment: number): Promise<{lifetimeCo
     const lifetimeCount = await getLifetimeCount();
     const todayCount = await getTodayCount();
     
+    // Save to data fortress for triple backup
+    const fortressData = {
+      userId: getCurrentUserId() || 'anonymous',
+      totalCount: lifetimeCount,
+      dailyCount: todayCount,
+      streak: 0, // Will be calculated separately
+      lastUpdated: Date.now(),
+      history: await getAllData('activityData')
+    };
+    
+    await dataFortress.save(fortressData);
+    
     return { lifetimeCount, todayCount };
   } catch (error) {
     console.error("Failed to update mantra counts:", error);
     throw error;
   }
+};
+
+// Helper to get current user ID
+const getCurrentUserId = (): string | null => {
+  const userData = localStorage.getItem('chantTrackerUserData');
+  return userData ? JSON.parse(userData).id : null;
 };

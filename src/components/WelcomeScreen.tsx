@@ -3,24 +3,39 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 import { initializeDatabase } from "@/utils/indexedDBUtils";
+import { dataFortress } from "@/utils/dataFortress";
 import ModernCard from "./ModernCard";
 import GoogleAuthButton from "./GoogleAuthButton";
+import BackupManager from "./BackupManager";
 import { Button } from "@/components/ui/button";
+import { Shield, Zap, Cloud } from "lucide-react";
 
 const WelcomeScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMigrating, setIsMigrating] = useState(false);
+  const [showBackupManager, setShowBackupManager] = useState(false);
 
   useEffect(() => {
     const init = async () => {
       setIsMigrating(true);
       await initializeDatabase();
+      
+      // Try auto-login
+      const autoLoginUser = dataFortress.autoLogin();
+      if (autoLoginUser) {
+        toast.success(`Welcome back, ${autoLoginUser.name}!`);
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
+        return;
+      }
+      
       console.log("Database initialization completed");
       setIsMigrating(false);
     };
     init();
-  }, [location]);
+  }, [location, navigate]);
 
   if (isMigrating) {
     return (
@@ -34,6 +49,8 @@ const WelcomeScreen: React.FC = () => {
   }
 
   const handleAuthSuccess = () => {
+    const userData = JSON.parse(localStorage.getItem('chantTrackerUserData') || '{}');
+    dataFortress.saveUserForAutoLogin(userData);
     toast.success("Welcome to your spiritual journey!");
     setTimeout(() => {
       window.location.href = "/";
@@ -41,7 +58,6 @@ const WelcomeScreen: React.FC = () => {
   };
 
   const handleContinueAsGuest = () => {
-    // Create a basic guest user
     const guestUser = {
       id: `GUEST_${Date.now()}`,
       name: "Guest User",
@@ -52,10 +68,25 @@ const WelcomeScreen: React.FC = () => {
       isGuest: true
     };
     
-    localStorage.setItem('chantTrackerUserData', JSON.stringify(guestUser));
+    dataFortress.saveUserForAutoLogin(guestUser);
     toast.success("Welcome! You can upgrade to Google sync anytime.");
     navigate("/");
   };
+
+  if (showBackupManager) {
+    return (
+      <div className="w-full max-w-2xl mx-auto p-4">
+        <Button 
+          onClick={() => setShowBackupManager(false)}
+          variant="outline"
+          className="mb-4"
+        >
+          ← Back to Welcome
+        </Button>
+        <BackupManager />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-lg mx-auto p-4 lg:max-w-2xl lg:p-8">
@@ -71,6 +102,28 @@ const WelcomeScreen: React.FC = () => {
           <p className="text-gray-600 dark:text-gray-300 text-sm lg:text-base">
             Begin tracking your sacred mantra repetitions
           </p>
+        </div>
+
+        {/* Fort Knox Security Features */}
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-4 mb-6 border border-amber-200/50 dark:border-amber-700/50">
+          <div className="flex items-center gap-2 mb-3">
+            <Shield className="w-5 h-5 text-amber-600" />
+            <h3 className="font-bold text-amber-800 dark:text-amber-200">🔒 Fort Knox Data Protection</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-green-600" />
+              <span className="text-green-700 dark:text-green-300">Triple Backup System</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Cloud className="w-4 h-4 text-blue-600" />
+              <span className="text-blue-700 dark:text-blue-300">Auto-Save Every 10s</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-purple-600" />
+              <span className="text-purple-700 dark:text-purple-300">Zero Data Loss</span>
+            </div>
+          </div>
         </div>
         
         <div className="space-y-4 mb-6">
@@ -96,6 +149,15 @@ const WelcomeScreen: React.FC = () => {
           >
             Continue as Guest (Local Only)
           </Button>
+
+          <Button
+            onClick={() => setShowBackupManager(true)}
+            variant="outline"
+            className="w-full border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/20"
+          >
+            <Shield className="w-4 h-4 mr-2" />
+            Advanced Backup Manager
+          </Button>
         </div>
         
         <div className="space-y-3 text-xs text-gray-500 dark:text-gray-400">
@@ -109,17 +171,17 @@ const WelcomeScreen: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-500">✓</span>
-            <span>Secure OAuth 2.0 authentication</span>
+            <span>Auto-login remembers you forever</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-blue-500">ℹ</span>
-            <span>Guest mode: Data stored locally on this device only</span>
+            <span>Guest mode: Data stored locally with triple backup</span>
           </div>
         </div>
         
         <div className="mt-6 lg:mt-8 pt-4 border-t border-gray-200/50 dark:border-zinc-700/50">
           <p className="text-xs lg:text-sm text-center text-gray-500 dark:text-gray-400">
-            Your spiritual practice data is private and secure. Google authentication provides the best sync experience.
+            🔒 Fort Knox security ensures your spiritual practice data is never lost. Auto-save and triple backup system protects every mantra count.
           </p>
         </div>
       </ModernCard>
