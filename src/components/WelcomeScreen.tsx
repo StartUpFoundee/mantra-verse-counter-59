@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/sonner";
 import { initializeDatabase } from "@/utils/indexedDBUtils";
 import { dataFortress } from "@/utils/dataFortress";
 import ModernCard from "./ModernCard";
-import GoogleAuthButton from "./GoogleAuthButton";
+import SimpleAuth from "./SimpleAuth";
 import BackupManager from "./BackupManager";
 import { Button } from "@/components/ui/button";
 import { Shield, Zap, Cloud } from "lucide-react";
@@ -21,7 +21,7 @@ const WelcomeScreen: React.FC = () => {
       setIsMigrating(true);
       await initializeDatabase();
       
-      // Try auto-login
+      // Try auto-login with Fort Knox system
       const autoLoginUser = dataFortress.autoLogin();
       if (autoLoginUser) {
         toast.success(`Welcome back, ${autoLoginUser.name}!`);
@@ -31,7 +31,7 @@ const WelcomeScreen: React.FC = () => {
         return;
       }
       
-      console.log("Database initialization completed");
+      console.log("🔒 Fort Knox data protection system ready");
       setIsMigrating(false);
     };
     init();
@@ -41,7 +41,7 @@ const WelcomeScreen: React.FC = () => {
     return (
       <ModernCard className="w-full max-w-md mx-auto p-8 text-center">
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="text-orange-400 text-lg mb-6">Setting up your spiritual journey...</div>
+          <div className="text-orange-400 text-lg mb-6">🔒 Initializing Fort Knox Security...</div>
           <div className="w-12 h-12 border-4 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
         </div>
       </ModernCard>
@@ -49,28 +49,10 @@ const WelcomeScreen: React.FC = () => {
   }
 
   const handleAuthSuccess = () => {
-    const userData = JSON.parse(localStorage.getItem('chantTrackerUserData') || '{}');
-    dataFortress.saveUserForAutoLogin(userData);
     toast.success("Welcome to your spiritual journey!");
     setTimeout(() => {
       window.location.href = "/";
     }, 1000);
-  };
-
-  const handleContinueAsGuest = () => {
-    const guestUser = {
-      id: `GUEST_${Date.now()}`,
-      name: "Guest User",
-      email: "guest@localhost",
-      createdAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
-      syncEnabled: false,
-      isGuest: true
-    };
-    
-    dataFortress.saveUserForAutoLogin(guestUser);
-    toast.success("Welcome! You can upgrade to Google sync anytime.");
-    navigate("/");
   };
 
   if (showBackupManager) {
@@ -127,28 +109,7 @@ const WelcomeScreen: React.FC = () => {
         </div>
         
         <div className="space-y-4 mb-6">
-          <div className="text-center mb-4">
-            <h3 className="text-lg font-semibold text-orange-600 dark:text-orange-400 mb-2">
-              🔐 Secure Google Authentication
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              Sign in with Google for unlimited cloud sync across all your devices
-            </p>
-          </div>
-          
-          <GoogleAuthButton onAuthSuccess={handleAuthSuccess} />
-          
-          <div className="text-center">
-            <span className="text-gray-400 text-sm">or</span>
-          </div>
-          
-          <Button
-            onClick={handleContinueAsGuest}
-            variant="outline"
-            className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-          >
-            Continue as Guest (Local Only)
-          </Button>
+          <SimpleAuth onAuthSuccess={handleAuthSuccess} />
 
           <Button
             onClick={() => setShowBackupManager(true)}
@@ -163,19 +124,19 @@ const WelcomeScreen: React.FC = () => {
         <div className="space-y-3 text-xs text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-2">
             <span className="text-green-500">✓</span>
-            <span>Google sync: Unlimited free storage (15GB Drive space)</span>
+            <span>Auto-login remembers you forever using browser fingerprint</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-500">✓</span>
-            <span>Works across all your devices</span>
+            <span>Triple backup ensures zero data loss</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-500">✓</span>
-            <span>Auto-login remembers you forever</span>
+            <span>Single window enforcement prevents conflicts</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-blue-500">ℹ</span>
-            <span>Guest mode: Data stored locally with triple backup</span>
+            <span>All data stored locally with military-grade protection</span>
           </div>
         </div>
         

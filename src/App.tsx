@@ -12,18 +12,40 @@ import SpiritualIdPage from "./pages/SpiritualIdPage";
 import IdentityGuidePage from "./pages/IdentityGuidePage";
 import ActiveDaysPage from "./pages/ActiveDaysPage";
 import NotFound from "./pages/NotFound";
+import WelcomeScreen from "./components/WelcomeScreen";
 import { initializeDatabase } from "./utils/indexedDBUtils";
+import { dataFortress } from "./utils/dataFortress";
 
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
-  // Initialize IndexedDB when the app starts
+  // Initialize the Fort Knox data protection system
   useEffect(() => {
     const init = async () => {
       await initializeDatabase();
+      console.log("🔒 Fort Knox data protection system initialized");
     };
     init();
   }, []);
+
+  // Check if user is logged in via auto-login
+  const autoLoginUser = dataFortress.autoLogin();
+  const hasUserData = localStorage.getItem('chantTrackerUserData');
+
+  // Show welcome screen if no user data
+  if (!autoLoginUser && !hasUserData) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 dark:from-zinc-900 dark:to-zinc-800 flex items-center justify-center p-4">
+            <WelcomeScreen />
+          </div>
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

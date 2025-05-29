@@ -1,7 +1,7 @@
 
 import React from "react";
 
-// Empty component as we're removing theme toggle functionality
+// Simplified - no theme toggle needed for this focused app
 const ThemeToggle: React.FC = () => {
   return null;
 };

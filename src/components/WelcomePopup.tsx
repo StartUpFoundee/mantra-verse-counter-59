@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from "react";
-import { getUserData } from "@/utils/spiritualIdUtils";
 import { 
   Dialog,
   DialogContent,
@@ -18,21 +17,24 @@ const WelcomePopup: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
-    // Load user data early to improve perceived performance
-    const userDataObj = getUserData();
-    setUserData(userDataObj);
-    
-    // Check if this is a page reload by checking if the popup was shown in this session
-    const hasShownInSession = sessionStorage.getItem('welcomePopupShown');
-    
-    if (userDataObj && !hasShownInSession) {
-      // Only show popup on page reload, not on navigation
-      const isPageReload = !window.performance || performance.navigation.type === performance.navigation.TYPE_RELOAD;
+    // Load user data from the new local system
+    const userDataStr = localStorage.getItem('chantTrackerUserData');
+    if (userDataStr) {
+      const userDataObj = JSON.parse(userDataStr);
+      setUserData(userDataObj);
       
-      if (isPageReload || !hasShownInSession) {
-        setIsOpen(true);
-        // Mark that we've shown the popup in this session
-        sessionStorage.setItem('welcomePopupShown', 'true');
+      // Check if this is a page reload by checking if the popup was shown in this session
+      const hasShownInSession = sessionStorage.getItem('welcomePopupShown');
+      
+      if (!hasShownInSession) {
+        // Only show popup on page reload, not on navigation
+        const isPageReload = !window.performance || performance.navigation.type === performance.navigation.TYPE_RELOAD;
+        
+        if (isPageReload || !hasShownInSession) {
+          setIsOpen(true);
+          // Mark that we've shown the popup in this session
+          sessionStorage.setItem('welcomePopupShown', 'true');
+        }
       }
     }
   }, []);
@@ -56,7 +58,7 @@ const WelcomePopup: React.FC = () => {
         <DialogHeader>
           <div className="flex flex-col items-center text-center pt-6">
             <ModernCard className="w-20 h-20 flex items-center justify-center mb-4 bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-amber-300/50 dark:border-amber-600/50">
-              <span className="text-4xl">{userData.symbolImage || "🕉️"}</span>
+              <span className="text-4xl">🕉️</span>
             </ModernCard>
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
               Namaste, {userData.name} Ji
