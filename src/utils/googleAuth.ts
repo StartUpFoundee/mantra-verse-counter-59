@@ -17,7 +17,8 @@ interface GoogleUser {
   picture: string;
 }
 
-const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"; // User will need to set this
+// TODO: Replace this with your actual Google Client ID from Google Cloud Console
+const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID_HERE"; // User needs to replace this
 
 let isGapiLoaded = false;
 let isGisLoaded = false;
@@ -26,7 +27,12 @@ let isGisLoaded = false;
  * Load Google APIs
  */
 export const loadGoogleAPIs = (): Promise<void> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "YOUR_GOOGLE_CLIENT_ID_HERE") {
+      reject(new Error("CLIENT_ID_NOT_CONFIGURED"));
+      return;
+    }
+
     // Load GAPI
     const gapiScript = document.createElement('script');
     gapiScript.src = 'https://apis.google.com/js/api.js';
@@ -36,6 +42,7 @@ export const loadGoogleAPIs = (): Promise<void> => {
         checkAndResolve();
       });
     };
+    gapiScript.onerror = () => reject(new Error("FAILED_TO_LOAD_GAPI"));
     document.head.appendChild(gapiScript);
 
     // Load Google Identity Services
@@ -45,6 +52,7 @@ export const loadGoogleAPIs = (): Promise<void> => {
       isGisLoaded = true;
       checkAndResolve();
     };
+    gisScript.onerror = () => reject(new Error("FAILED_TO_LOAD_GIS"));
     document.head.appendChild(gisScript);
 
     function checkAndResolve() {
