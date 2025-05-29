@@ -1,7 +1,15 @@
 /**
  * Spiritual ID utilities for user identity management
- * Now focused on email-based authentication only
+ * Now using Google OAuth authentication
  */
+
+import { 
+  signInWithGoogle, 
+  signOutFromGoogle, 
+  getCurrentGoogleUser, 
+  isGoogleSignedIn 
+} from './googleAuth';
+import { syncWithGoogleDrive } from './googleDriveSync';
 
 export interface SpiritualIcon {
   id: string;
@@ -19,10 +27,21 @@ export const spiritualIcons: SpiritualIcon[] = [
   { id: "meditation", symbol: "🧘", name: "Meditation", meaning: "Inner reflection" }
 ];
 
+interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  picture?: string;
+  symbolImage?: string;
+  createdAt: string;
+  lastUpdated: string;
+  syncEnabled: boolean;
+}
+
 /**
- * Get user data from localStorage
+ * Get user data from localStorage (for backward compatibility)
  */
-export const getUserData = (): any => {
+export const getUserData = (): UserData | null => {
   const userData = localStorage.getItem('chantTrackerUserData');
   return userData ? JSON.parse(userData) : null;
 };
@@ -30,84 +49,136 @@ export const getUserData = (): any => {
 /**
  * Save user data to localStorage
  */
-export const saveUserData = (userData: any): void => {
+export const saveUserData = (userData: UserData): void => {
   localStorage.setItem('chantTrackerUserData', JSON.stringify(userData));
 };
 
 /**
- * Check if user is logged in
+ * Check if user is logged in (Google or legacy)
  */
 export const isUserLoggedIn = (): boolean => {
-  return localStorage.getItem('chantTrackerUserData') !== null;
+  return isGoogleSignedIn() || localStorage.getItem('chantTrackerUserData') !== null;
 };
 
 /**
- * Logout user by removing data from localStorage
+ * Login with Google
  */
-export const logoutUser = (): void => {
-  localStorage.removeItem('chantTrackerUserData');
+export const loginWithGoogle = async (): Promise<UserData> => {
+  try {
+    const googleUser = await signInWithGoogle();
+    
+    const userData: UserData = {
+      id: `GOOGLE_${googleUser.id}`,
+      name: googleUser.name,
+      email: googleUser.email,
+      picture: googleUser.picture,
+      symbolImage: "🕉️", // Default symbol
+      createdAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+      syncEnabled: true
+    };
+
+    saveUserData(userData);
+    console.log('Google login successful:', userData);
+    return userData;
+  } catch (error) {
+    console.error('Google login failed:', error);
+    throw new Error('Failed to login with Google');
+  }
 };
 
 /**
- * Check if an ID is email-based
+ * Logout user
  */
-export const isEmailBasedID = (id: string): boolean => {
-  return id.startsWith('EM_');
+export const logoutUser = async (): Promise<void> => {
+  try {
+    // Sign out from Google if signed in
+    if (isGoogleSignedIn()) {
+      await signOutFromGoogle();
+    }
+    
+    // Clear local data
+    localStorage.removeItem('chantTrackerUserData');
+    
+    console.log('User logged out successfully');
+  } catch (error) {
+    console.error('Logout failed:', error);
+    throw new Error('Failed to logout');
+  }
 };
 
 /**
- * Validate user ID format
+ * Sync user data with Google Drive
  */
-export const validateUserID = (id: string): boolean => {
-  if (!id || typeof id !== 'string') return false;
-  return id.startsWith('EM_') && id.length > 10;
-};
-
-/**
- * Generate QR data for sharing ID
- */
-export const generateIdQRData = (id: string): string => {
-  return `https://mantraverse.app/restore?id=${encodeURIComponent(id)}`;
-};
-
-/**
- * Generate data-embedded ID (refresh existing ID with latest data)
- */
-export const generateDataEmbeddedID = async (userData: any): Promise<string> => {
-  // For email-based system, we keep the same ID format
-  // Just return the existing ID since it's based on email+pin hash
-  return userData.id || `EM_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
-
-/**
- * Regenerate user ID with latest data
- */
-export const regenerateUserID = async (): Promise<void> => {
+export const syncUserData = async (): Promise<void> => {
   const userData = getUserData();
-  if (!userData) throw new Error('No user data found');
-  
-  // For email-based system, ID doesn't change
-  // This function exists for compatibility but doesn't modify the ID
-  const updatedData = { ...userData, lastUpdated: new Date().toISOString() };
+  if (!userData || !userData.syncEnabled || !isGoogleSignedIn()) {
+    console.log('Sync not available or disabled');
+    return;
+  }
+
+  try {
+    // This would sync the actual jaap data
+    console.log('Syncing user data with Google Drive...');
+    // Implementation would go here once we integrate with the counting system
+  } catch (error) {
+    console.error('Sync failed:', error);
+  }
+};
+
+/**
+ * Update user profile
+ */
+export const updateUserProfile = (updates: Partial<UserData>): void => {
+  const userData = getUserData();
+  if (!userData) return;
+
+  const updatedData = {
+    ...userData,
+    ...updates,
+    lastUpdated: new Date().toISOString()
+  };
+
   saveUserData(updatedData);
 };
 
 /**
- * Import account from ID
+ * Legacy functions for backward compatibility
  */
+export const isEmailBasedID = (id: string): boolean => {
+  return id.startsWith('EM_') || id.startsWith('GOOGLE_');
+};
+
+export const validateUserID = (id: string): boolean => {
+  if (!id || typeof id !== 'string') return false;
+  return id.startsWith('EM_') || id.startsWith('GOOGLE_');
+};
+
+export const generateIdQRData = (id: string): string => {
+  return `https://mantraverse.app/restore?id=${encodeURIComponent(id)}`;
+};
+
+export const regenerateUserID = async (): Promise<void> => {
+  const userData = getUserData();
+  if (!userData) throw new Error('No user data found');
+  
+  const updatedData = { ...userData, lastUpdated: new Date().toISOString() };
+  saveUserData(updatedData);
+};
+
 export const importAccountFromID = async (id: string): Promise<boolean> => {
   try {
     if (!validateUserID(id)) {
       return false;
     }
 
-    // For now, we'll create a basic user data structure
-    // In a real implementation, this would decode embedded data from the ID
     const userData = {
       id: id,
       name: "Imported User",
       email: "imported@example.com",
       createdAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+      syncEnabled: false,
       imported: true
     };
 
@@ -117,4 +188,9 @@ export const importAccountFromID = async (id: string): Promise<boolean> => {
     console.error('Import error:', error);
     return false;
   }
+};
+
+// Keep generateDataEmbeddedID for compatibility
+export const generateDataEmbeddedID = async (userData: any): Promise<string> => {
+  return userData.id || `GOOGLE_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };

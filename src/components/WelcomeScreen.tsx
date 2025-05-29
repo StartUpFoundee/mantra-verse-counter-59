@@ -4,7 +4,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 import { initializeDatabase } from "@/utils/indexedDBUtils";
 import ModernCard from "./ModernCard";
-import EmailAuthTabs from "./EmailAuthTabs";
+import GoogleAuthButton from "./GoogleAuthButton";
+import { Button } from "@/components/ui/button";
 
 const WelcomeScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -33,12 +34,26 @@ const WelcomeScreen: React.FC = () => {
   }
 
   const handleAuthSuccess = () => {
+    toast.success("Welcome to your spiritual journey!");
     setTimeout(() => {
       window.location.href = "/";
     }, 1000);
   };
 
   const handleContinueAsGuest = () => {
+    // Create a basic guest user
+    const guestUser = {
+      id: `GUEST_${Date.now()}`,
+      name: "Guest User",
+      email: "guest@localhost",
+      createdAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+      syncEnabled: false,
+      isGuest: true
+    };
+    
+    localStorage.setItem('chantTrackerUserData', JSON.stringify(guestUser));
+    toast.success("Welcome! You can upgrade to Google sync anytime.");
     navigate("/");
   };
 
@@ -58,23 +73,53 @@ const WelcomeScreen: React.FC = () => {
           </p>
         </div>
         
-        <div className="text-center mb-4">
-          <h3 className="text-lg font-semibold text-orange-600 dark:text-orange-400 mb-2">
-            🔐 Secure Email + PIN Authentication
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            One email, one sacred practice account. Your spiritual data stays secure and private.
-          </p>
+        <div className="space-y-4 mb-6">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-semibold text-orange-600 dark:text-orange-400 mb-2">
+              🔐 Secure Google Authentication
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Sign in with Google for unlimited cloud sync across all your devices
+            </p>
+          </div>
+          
+          <GoogleAuthButton onAuthSuccess={handleAuthSuccess} />
+          
+          <div className="text-center">
+            <span className="text-gray-400 text-sm">or</span>
+          </div>
+          
+          <Button
+            onClick={handleContinueAsGuest}
+            variant="outline"
+            className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            Continue as Guest (Local Only)
+          </Button>
         </div>
         
-        <EmailAuthTabs 
-          onAuthSuccess={handleAuthSuccess}
-          onContinueAsGuest={handleContinueAsGuest}
-        />
+        <div className="space-y-3 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-2">
+            <span className="text-green-500">✓</span>
+            <span>Google sync: Unlimited free storage (15GB Drive space)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-green-500">✓</span>
+            <span>Works across all your devices</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-green-500">✓</span>
+            <span>Secure OAuth 2.0 authentication</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-blue-500">ℹ</span>
+            <span>Guest mode: Data stored locally on this device only</span>
+          </div>
+        </div>
         
         <div className="mt-6 lg:mt-8 pt-4 border-t border-gray-200/50 dark:border-zinc-700/50">
           <p className="text-xs lg:text-sm text-center text-gray-500 dark:text-gray-400">
-            Your spiritual practice data is stored locally on your device for privacy and security.
+            Your spiritual practice data is private and secure. Google authentication provides the best sync experience.
           </p>
         </div>
       </ModernCard>
